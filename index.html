@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ランダム古文単語帳</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+         margin: 0; padding: 24px 16px; background: #f4f6fa; color: #202633; }
+  main { max-width: 520px; margin: 0 auto; background: white; border-radius: 20px; padding: 22px;
+         box-shadow: 0 5px 24px #18243a14; }
+  h1 { font-size: 1.35rem; margin: 0 0 18px; }
+  .meta { display:flex; justify-content:space-between; align-items:center; color:#596579; font-size:.9rem; }
+  .track { height:7px; background:#e8edf5; border-radius:9px; overflow:hidden; margin:12px 0 22px; }
+  #progress { height:100%; width:0; background:#3985d6; transition:width .2s; }
+  .card { background:#f2f5fa; border-radius:16px; min-height:190px; padding:24px 16px; display:flex;
+          flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:15px; }
+  .hint { color:#788397; font-size:.85rem; }
+  #word { font-size:2rem; font-weight:750; overflow-wrap:anywhere; }
+  #meaning { font-size:1.08rem; line-height:1.8; white-space:pre-line; }
+  button { width:100%; border:0; border-radius:12px; padding:14px 12px; font-size:1rem; font-weight:650;
+           margin-top:12px; cursor:pointer; background:#286fc2; color:white; }
+  button.secondary { background:#edf1f7; color:#263348; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .note { color:#778195; font-size:.8rem; line-height:1.6; margin-top:18px; }
+</style>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#286fc2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="古文単語帳">
+</head>
+<body>
+<main>
+  <h1>ランダム古文単語帳</h1>
+  <div class="meta"><span>確認した単語</span><strong id="count">0 / 12 語</strong></div>
+  <div class="track"><div id="progress"></div></div>
+  <section class="card" aria-live="polite">
+    <div class="hint">出題単語</div>
+    <div id="word">「ランダムに開く」を押してください</div>
+    <div id="meaning" hidden></div>
+  </section>
+  <button class="secondary" id="reveal" disabled>意味を見る</button>
+  <button id="next">ランダムに開く</button>
+  <button class="secondary" id="reset">最初からやり直す</button>
+  <p class="note">「ランダムに開く」を押すたびに単語が1つ表示されます。同じ単語が連続して出ないようになっています。確認済みの数は、このページを開いている間だけ記録されます。</p>
+</main>
+<script>
+const words = [
+ ["あきらむ", "① 明らかにする\n② 明かす・晴らす"],
+ ["あく", "① 十分満足する"],
+ ["あくがる", "① 離れさまよう・浮かれ歩く\n② 落ち着かない"],
+ ["ありく", "① 歩きまわる・動きまわる\n② ～（し）まわる・いつも～（する）"],
+ ["おこたる", "① なおる\n② 中断する"],
+ ["おどろく", "① 目を覚ます\n② びっくりする"],
+ ["とぶらふ", "① 見舞う・たずねる\n② とむらう"],
+ ["ながむ", "① 物思いに沈む・見渡す\n② 吟じる"],
+ ["なやむ", "① 苦しむ\n② 病気になる"],
+ ["ねんず", "① 祈る\n② 我慢する"],
+ ["ののしる", "① 大声で騒ぐ・大騒ぎする\n② 評判が高い・威勢がよい"],
+ ["まもる／まぼる", "① じっと見つめる\n② 世話をする"]
+];
+let current = -1, seen = new Set(), revealed = false;
+const wordEl = document.getElementById('word');
+const meaningEl = document.getElementById('meaning');
+const revealBtn = document.getElementById('reveal');
+const nextBtn = document.getElementById('next');
+function updateCount() {
+  document.getElementById('count').textContent = `${seen.size} / ${words.length} 語`;
+  document.getElementById('progress').style.width = `${seen.size / words.length * 100}%`;
+}
+function setReveal(show) {
+  revealed = show;
+  meaningEl.hidden = !show;
+  revealBtn.textContent = show ? '意味を隠す' : '意味を見る';
+  if (show && current >= 0) meaningEl.textContent = words[current][1];
+}
+nextBtn.addEventListener('click', () => {
+  const choices = words.map((_, i) => i).filter(i => i !== current);
+  current = choices[Math.floor(Math.random() * choices.length)];
+  seen.add(current);
+  wordEl.textContent = words[current][0];
+  meaningEl.textContent = '';
+  revealBtn.disabled = false;
+  setReveal(false);
+  nextBtn.textContent = seen.size === words.length ? 'もう一度ランダムに開く' : '次の単語をランダムに開く';
+  updateCount();
+});
+revealBtn.addEventListener('click', () => setReveal(!revealed));
+document.getElementById('reset').addEventListener('click', () => {
+  current = -1; seen = new Set();
+  wordEl.textContent = '「ランダムに開く」を押してください';
+  meaningEl.textContent = '';
+  revealBtn.disabled = true;
+  setReveal(false);
+  nextBtn.textContent = 'ランダムに開く';
+  updateCount();
+});
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
