@@ -1,106 +1,127 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ランダム古文単語帳</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#315c50">
+<meta name="description" content="古文単語をランダムに学べる単語帳アプリ">
+<link rel="manifest" href="manifest.webmanifest">
+<title>古文単語帳</title>
 <style>
-  :root { color-scheme: light; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
-         margin: 0; padding: 24px 16px; background: #f4f6fa; color: #202633; }
-  main { max-width: 520px; margin: 0 auto; background: white; border-radius: 20px; padding: 22px;
-         box-shadow: 0 5px 24px #18243a14; }
-  h1 { font-size: 1.35rem; margin: 0 0 18px; }
-  .meta { display:flex; justify-content:space-between; align-items:center; color:#596579; font-size:.9rem; }
-  .track { height:7px; background:#e8edf5; border-radius:9px; overflow:hidden; margin:12px 0 22px; }
-  #progress { height:100%; width:0; background:#3985d6; transition:width .2s; }
-  .card { background:#f2f5fa; border-radius:16px; min-height:190px; padding:24px 16px; display:flex;
-          flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:15px; }
-  .hint { color:#788397; font-size:.85rem; }
-  #word { font-size:2rem; font-weight:750; overflow-wrap:anywhere; }
-  #meaning { font-size:1.08rem; line-height:1.8; white-space:pre-line; }
-  button { width:100%; border:0; border-radius:12px; padding:14px 12px; font-size:1rem; font-weight:650;
-           margin-top:12px; cursor:pointer; background:#286fc2; color:white; }
-  button.secondary { background:#edf1f7; color:#263348; }
-  button:disabled { opacity:.45; cursor:not-allowed; }
-  .note { color:#778195; font-size:.8rem; line-height:1.6; margin-top:18px; }
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#23332e;background:#f3f6f2}
+*{box-sizing:border-box}body{margin:0;padding:0 0 40px}
+header{background:#315c50;color:white;padding:24px 18px 20px;text-align:center}
+header h1{font-size:23px;margin:0 0 6px}header p{margin:0;font-size:13px;opacity:.85}
+main{max-width:650px;margin:18px auto;padding:0 14px}
+.panel{background:white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 3px 14px #203b3010}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700}
+.progress{height:7px;background:#e6ece8;border-radius:99px;overflow:hidden;margin:13px 0}
+.progress>div{height:100%;width:0;background:#4d9278;transition:width .2s}
+.card{min-height:210px;border:1px solid #e5ebe7;border-radius:15px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:22px;margin:12px 0;background:#fbfdfb}
+.word{font-size:32px;font-weight:750;letter-spacing:.04em;overflow-wrap:anywhere}
+.prompt{font-size:13px;color:#77847e;margin-top:16px}
+.meaning{white-space:pre-wrap;line-height:1.9;margin-top:18px;font-size:17px}
+button{border:0;border-radius:12px;padding:13px 15px;font-size:15px;font-weight:650;background:#315c50;color:white;cursor:pointer}
+button:disabled{opacity:.35;cursor:not-allowed}
+button.secondary{background:#edf2ef;color:#315c50}
+button.light{background:transparent;color:#52665d}
+button.danger{background:#fff0ef;color:#a13b32}
+.actions{display:flex;gap:9px}.actions button{flex:1}
+.full{width:100%}
+.meta{display:flex;justify-content:space-between;align-items:center;color:#68766f;font-size:13px;margin-top:12px}
+.checkrow{display:flex;align-items:center;gap:9px;margin-top:15px;font-size:14px}
+input[type=checkbox]{width:18px;height:18px;accent-color:#315c50}
+details summary{font-weight:700;cursor:pointer;padding:4px 0}
+textarea{width:100%;min-height:260px;border:1px solid #d8e1db;border-radius:12px;padding:12px;font:14px/1.7 ui-monospace,monospace;resize:vertical}
+.hint{font-size:12px;line-height:1.7;color:#68766f}
+.status{font-size:13px;color:#315c50;min-height:20px;margin-top:8px}
+footer{text-align:center;color:#829087;font-size:11px;margin:22px}
+@media(min-width:600px){main{margin-top:25px}.panel{padding:22px}}
 </style>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#286fc2">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="古文単語帳">
 </head>
 <body>
+<header><h1>古文単語帳</h1><p>見て・答えて・覚える。自分だけの古文単語帳</p></header>
 <main>
-  <h1>ランダム古文単語帳</h1>
-  <div class="meta"><span>確認した単語</span><strong id="count">0 / 12 語</strong></div>
-  <div class="track"><div id="progress"></div></div>
-  <section class="card" aria-live="polite">
-    <div class="hint">出題単語</div>
-    <div id="word">「ランダムに開く」を押してください</div>
-    <div id="meaning" hidden></div>
-  </section>
-  <button class="secondary" id="reveal" disabled>意味を見る</button>
-  <button id="next">ランダムに開く</button>
-  <button class="secondary" id="reset">最初からやり直す</button>
-  <p class="note">「ランダムに開く」を押すたびに単語が1つ表示されます。同じ単語が連続して出ないようになっています。確認済みの数は、このページを開いている間だけ記録されます。</p>
+<section class="panel">
+ <div class="topline"><span>暗記カード</span><span id="counter">1 / 12</span></div>
+ <div class="progress"><div id="bar"></div></div>
+ <div class="card">
+  <div class="word" id="word">あきらむ</div>
+  <div class="prompt" id="prompt">意味は？</div>
+  <div class="meaning" id="meaning" hidden></div>
+ </div>
+ <button class="full" id="reveal">答えを見る</button>
+ <div class="actions" style="margin-top:10px">
+  <button class="secondary" id="prev">前へ</button><button id="next">次へ</button>
+ </div>
+ <label class="checkrow"><input type="checkbox" id="learned"> この単語を覚えた！</label>
+ <div class="meta"><span id="learnedCount">覚えた単語：0 / 12</span><button class="secondary" id="shuffle">🔀 シャッフル</button></div>
+</section>
+
+<section class="panel">
+ <div class="topline"><span>単語リストの管理</span><span id="total">12語</span></div>
+ <p class="hint">1行につき1単語。単語と意味を「｜」で区切ります。意味が複数ある場合は「；」で区切れます。</p>
+ <textarea id="editor" spellcheck="false" aria-label="単語リスト"></textarea>
+ <div class="actions" style="margin-top:10px">
+  <button id="apply">リストを反映</button><button class="secondary" id="restore">初期リストに戻す</button>
+ </div>
+ <div class="status" id="status" role="status"></div>
+ <p class="hint">単語リストと学習状況は、このブラウザ内に保存されます。同じ端末・同じブラウザで開くと続きから使えます。</p>
+</section>
+<section class="panel">
+ <div class="topline"><span>使い方</span></div>
+ <p class="hint">① 単語を見て意味を答えます。<br>②「答えを見る」で意味を確認します。<br>③ 覚えたらチェックを付けます。<br>④「シャッフル」で順番を入れ替えられます。<br>⑤ 下の編集欄で単語を自由に追加・変更・削除できます。</p>
+</section>
 </main>
+<footer>古文単語帳 — 学習データはこの端末のブラウザに保存されます。</footer>
 <script>
-const words = [
- ["あきらむ", "① 明らかにする\n② 明かす・晴らす"],
- ["あく", "① 十分満足する"],
- ["あくがる", "① 離れさまよう・浮かれ歩く\n② 落ち着かない"],
- ["ありく", "① 歩きまわる・動きまわる\n② ～（し）まわる・いつも～（する）"],
- ["おこたる", "① なおる\n② 中断する"],
- ["おどろく", "① 目を覚ます\n② びっくりする"],
- ["とぶらふ", "① 見舞う・たずねる\n② とむらう"],
- ["ながむ", "① 物思いに沈む・見渡す\n② 吟じる"],
- ["なやむ", "① 苦しむ\n② 病気になる"],
- ["ねんず", "① 祈る\n② 我慢する"],
- ["ののしる", "① 大声で騒ぐ・大騒ぎする\n② 評判が高い・威勢がよい"],
- ["まもる／まぼる", "① じっと見つめる\n② 世話をする"]
+const DEFAULTS = [
+["あきらむ","① 明らかにする；② 明かす・晴らす"],
+["あく","① 十分満足する"],
+["あくがる","① 離れさまよう・浮かれ歩く；② 落ち着かない"],
+["ありく","① 歩きまわる・動きまわる；② ～（し）まわる・いつも～（する）"],
+["おこたる","① なおる；② 中断する"],
+["おどろく","① 目を覚ます；② びっくりする"],
+["とぶらふ","① 見舞う・たずねる；② とむらう"],
+["ながむ","① 物思いに沈む・見渡す；② 吟じる"],
+["なやむ","① 苦しむ・病気になる"],
+["ねんず","① 祈る；② 我慢する"],
+["ののしる","① 大声で騒ぐ・大騒ぎする；② 評判が高い・威勢がよい"],
+["まもる／まぼる","① じっと見つめる；② 世話をする"]
 ];
-let current = -1, seen = new Set(), revealed = false;
-const wordEl = document.getElementById('word');
-const meaningEl = document.getElementById('meaning');
-const revealBtn = document.getElementById('reveal');
-const nextBtn = document.getElementById('next');
-function updateCount() {
-  document.getElementById('count').textContent = `${seen.size} / ${words.length} 語`;
-  document.getElementById('progress').style.width = `${seen.size / words.length * 100}%`;
+const $=id=>document.getElementById(id);
+let words=load("kobunWords",DEFAULTS);
+let learned=new Set(load("kobunLearned",[]));
+let deck=[],index=0,shown=false;
+function load(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback}catch{return fallback}}
+function save(){localStorage.setItem("kobunWords",JSON.stringify(words));localStorage.setItem("kobunLearned",JSON.stringify([...learned]))}
+function shuffle(){deck=words.map((_,i)=>i);for(let i=deck.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}index=0;shown=false;render()}
+function render(){
+ if(!words.length){$("word").textContent="単語がありません";$("meaning").hidden=true;$("prompt").textContent="下の欄から単語を登録してください";$("counter").textContent="0 / 0";$("bar").style.width="0%";$("prev").disabled=$("next").disabled=true;$("reveal").disabled=true;$("learned").disabled=true;$("learnedCount").textContent="覚えた単語：0 / 0";$("total").textContent="0語";return}
+ const id=deck[index];const [w,m]=words[id];
+ $("word").textContent=w;$("meaning").textContent=m.replace(/；/g,"\n");$("meaning").hidden=!shown;
+ $("prompt").hidden=shown;$("reveal").textContent=shown?"答えを隠す":"答えを見る";
+ $("counter").textContent=`${index+1} / ${words.length}`;$("bar").style.width=`${(index+1)/words.length*100}%`;
+ $("prev").disabled=index===0;$("next").disabled=index===words.length-1;
+ $("learned").disabled=false;$("learned").checked=learned.has(w);
+ $("learnedCount").textContent=`覚えた単語：${words.filter(x=>learned.has(x[0])).length} / ${words.length}`;
+ $("total").textContent=`${words.length}語`;
 }
-function setReveal(show) {
-  revealed = show;
-  meaningEl.hidden = !show;
-  revealBtn.textContent = show ? '意味を隠す' : '意味を見る';
-  if (show && current >= 0) meaningEl.textContent = words[current][1];
-}
-nextBtn.addEventListener('click', () => {
-  const choices = words.map((_, i) => i).filter(i => i !== current);
-  current = choices[Math.floor(Math.random() * choices.length)];
-  seen.add(current);
-  wordEl.textContent = words[current][0];
-  meaningEl.textContent = '';
-  revealBtn.disabled = false;
-  setReveal(false);
-  nextBtn.textContent = seen.size === words.length ? 'もう一度ランダムに開く' : '次の単語をランダムに開く';
-  updateCount();
-});
-revealBtn.addEventListener('click', () => setReveal(!revealed));
-document.getElementById('reset').addEventListener('click', () => {
-  current = -1; seen = new Set();
-  wordEl.textContent = '「ランダムに開く」を押してください';
-  meaningEl.textContent = '';
-  revealBtn.disabled = true;
-  setReveal(false);
-  nextBtn.textContent = 'ランダムに開く';
-  updateCount();
-});
+function editorText(){ $("editor").value=words.map(([w,m])=>`${w}｜${m}`).join("\n") }
+$("reveal").onclick=()=>{shown=!shown;render()};
+$("prev").onclick=()=>{if(index>0){index--;shown=false;render()}};
+$("next").onclick=()=>{if(index<words.length-1){index++;shown=false;render()}};
+$("shuffle").onclick=shuffle;
+$("learned").onchange=e=>{const w=words[deck[index]][0];e.target.checked?learned.add(w):learned.delete(w);save();render()};
+$("apply").onclick=()=>{
+ const lines=$("editor").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ const parsed=[];for(let i=0;i<lines.length;i++){const p=lines[i].split(/[｜|]/);if(p.length!==2||!p[0].trim()||!p[1].trim()){$("status").textContent=`${i+1}行目の形式を確認してください（単語｜意味）。`;return}parsed.push([p[0].trim(),p[1].trim()])}
+ if(!parsed.length){$("status").textContent="単語を1つ以上入力してください。";return}
+ if(new Set(parsed.map(x=>x[0])).size!==parsed.length){$("status").textContent="同じ単語が重複しています。";return}
+ words=parsed;learned=new Set([...learned].filter(w=>words.some(x=>x[0]===w)));save();shuffle();$("status").textContent="単語リストを反映して保存しました。";
+};
+$("restore").onclick=()=>{$("editor").value=DEFAULTS.map(([w,m])=>`${w}｜${m}`).join("\n");$("status").textContent="初期リストを入力欄に戻しました。「リストを反映」を押すと適用されます。"};
+editorText();shuffle();
+if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script>
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
-}
-</script>
-</body>
-</html>
+</body></html>

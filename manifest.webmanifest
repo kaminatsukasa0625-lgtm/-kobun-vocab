@@ -1,13 +1,10 @@
 {
-  "name": "ランダム古文単語帳",
+  "name": "古文単語帳",
   "short_name": "古文単語帳",
-  "lang": "ja",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f6fa",
-  "theme_color": "#286fc2",
-  "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
-  ]
+  "background_color": "#f3f6f2",
+  "theme_color": "#315c50",
+  "lang": "ja"
 }
